@@ -5,6 +5,9 @@ from GeoserverCatalog import GeoserverCatalog
 from GeoserverRestService import GeoserverRestService
 from MapstoreService import MapstoreService
 from Config import Config
+import requests
+from requests.auth import HTTPBasicAuth
+
 
 import json as jsonlib
 
@@ -225,6 +228,42 @@ def st_geocreatemap():
         maps = mapstore_service.get_maps(access_token)
         return jsonify({'st_geocreatemap': maps}), 200
 
+def modify_map_permissions( access_token, id):
+    try:
+        headers = {
+            'Authorization': 'Bearer ' + access_token,
+            'Content-Type': 'application/xml'
+        }
+        payload = '''
+            <SecurityRuleList>
+                <SecurityRule>
+                    <canRead>true</canRead>
+                    <canWrite>true</canWrite>
+                    <user>
+                        <id>2</id>
+                        <name>admin</name>
+                    </user>
+                </SecurityRule>
+                <SecurityRule>
+                    <canRead>true</canRead>
+                    <canWrite>false</canWrite>
+                    <group>
+                        <id>1</id>
+                        <groupName>everyone</groupName>
+                    </group>
+                </SecurityRule>
+            </SecurityRuleList>
+            '''
+
+        response = requests.post(Config.MAPSTORE_URL + '/resources/resource/' + id + '/permissions',
+                                    headers=headers,
+                                    data=payload)
+        print(response)
+        return response
+    except Exception as e:
+        return e.args[0]
+
+
 
 @app.route('/st_geocreatefastcontext', methods=["POST"])
 def st_geocreatefastcontext():
@@ -289,7 +328,9 @@ def st_geocreatefastcontext():
                                     )
 
     maps = mapstore_service.get_maps(access_token)
-    maplink = Config.MAPSTORE_PUBLIC_URL+"/#/viewer/openlayers/"+ myMapResponse.text
+    myMapId=myMapResponse.text
+    maplink = Config.MAPSTORE_URL+"/#/viewer/openlayers/"+ myMapId
+    modify_map_permissions(access_token,myMapId)    
 #    return jsonify({'st_geocreatefastcontext': maps}), 200
     return jsonify({'maplink': maplink}), 200
 
