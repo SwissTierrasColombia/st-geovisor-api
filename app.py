@@ -329,7 +329,7 @@ def st_geocreatefastcontext():
 
     maps = mapstore_service.get_maps(access_token)
     myMapId=myMapResponse.text
-    maplink = Config.MAPSTORE_URL+"/#/viewer/openlayers/"+ myMapId
+    maplink = Config.MAPSTORE_PUBLIC_URL+"/#/viewer/openlayers/"+ myMapId
     modify_map_permissions(access_token,myMapId)    
 #    return jsonify({'st_geocreatefastcontext': maps}), 200
     return jsonify({'maplink': maplink}), 200
